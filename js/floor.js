@@ -32,7 +32,8 @@ window.Floor = (function () {
       c.getContext('2d').drawImage(im, 0, 0, Rig.W, Rig.H);
       d.parts = Rig.partsFromCanvas(c);
     };
-    im.src = '/img/' + d.id + '.png?v=' + d.v;
+    if (DD.api) im.crossOrigin = 'anonymous';
+    im.src = DD.img(d);
   }
   function relayout() {
     const list = [...real.values()].sort((a, b) => a.ts - b.ts);

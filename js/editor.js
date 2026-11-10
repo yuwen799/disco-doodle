@@ -191,7 +191,8 @@ window.Editor = (function () {
         undo = []; ictx.clearRect(0, 0, W, H); ictx.drawImage(im, 0, 0, W, H);
         $('showBase').checked = false; base.style.visibility = 'hidden'; dirty = true;
       };
-      im.src = '/img/' + existing.id + '.png?v=' + existing.v;
+      if (DD.api) im.crossOrigin = 'anonymous';
+      im.src = DD.img(existing);
     }
     $('bGo').textContent = existing ? '改好了，回舞池 ▶' : '进入舞池 ▶';
     dirty = true;
