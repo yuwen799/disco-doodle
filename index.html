@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>来蹦迪 DISCO DOODLE</title>
+<meta name="description" content="画个小人，丢进 90 年代舞池，一起蹦迪。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="floor"></canvas>
+
+<div id="hud" hidden>
+  <div class="logo">来蹦迪<small>DISCO DOODLE</small></div>
+  <div class="stats" id="stat"></div>
+  <div id="findBox" hidden>
+    <input id="findIn" placeholder="输入昵称找人…" maxlength="16" autocomplete="off">
+    <div id="findRes"></div>
+  </div>
+  <div class="bar">
+    <button id="bMusic" class="neon">🔇 开音乐</button>
+    <button id="bNext" class="neon" hidden>⏭ 换歌</button>
+    <button id="bMe" class="neon">📍 找我</button>
+    <button id="bFind" class="neon">🔍 找人</button>
+    <button id="bScreen" class="neon">📺 上大屏</button>
+    <button id="bDraw" class="neon hot">✏️ 画自己</button>
+  </div>
+</div>
+
+<div id="editor" class="veil" hidden>
+  <div class="win">
+    <div class="title"><span>🕺 我的小人.bmp - 画个人去蹦迪</span><span class="tb"><i>_</i><i>□</i><i id="edClose">×</i></span></div>
+    <div class="menu"><span><u>文</u>件</span><span><u>编</u>辑</span><span><u>蹦</u>迪</span><span class="tip">在人偶上随便画：换衣服、写字、加帽子……画布里画什么都行</span></div>
+    <div class="body">
+      <div class="tools">
+        <div id="tools" class="toolgrid"></div>
+        <div id="sizes" class="sizes"></div>
+        <button id="bUndo" class="w95" title="撤销">↶ 撤销</button>
+        <button id="bClear" class="w95" title="清空我画的">🗑 清空</button>
+        <label class="chk"><input type="checkbox" id="showBase" checked> 人偶</label>
+      </div>
+      <div class="paperWrap">
+        <div id="paper"><canvas id="base" width="128" height="192"></canvas><canvas id="ink" width="128" height="192"></canvas></div>
+      </div>
+      <div class="side">
+        <div class="pv"><canvas id="preview" width="150" height="216"></canvas><div class="cap">▲ 试跳预览</div></div>
+        <div class="lbl">选个舞步</div>
+        <div id="moves" class="moves"></div>
+        <div class="lbl">昵称</div>
+        <input id="name" class="w95in" maxlength="16" placeholder="无名舞者" autocomplete="off">
+        <div class="lbl">留一句话</div>
+        <input id="msg" class="w95in" maxlength="40" placeholder="表白、找人、喊麦都行" autocomplete="off">
+      </div>
+    </div>
+    <div class="palrow">
+      <div id="cur" class="cur"></div>
+      <div id="palette" class="palette"></div>
+    </div>
+    <div class="foot">
+      <button id="bWatch" class="w95">不画了，先围观</button>
+      <button id="bGo" class="w95 go">进入舞池 ▶</button>
+    </div>
+  </div>
+</div>
+
+<div id="zoom" class="veil" hidden>
+  <div class="card">
+    <button class="x" id="zClose">×</button>
+    <canvas id="zCanvas" width="420" height="640"></canvas>
+    <div class="zinfo">
+      <div class="zname" id="zName"></div>
+      <div class="zmsg" id="zMsg"></div>
+      <div class="zmeta" id="zMeta"></div>
+      <div class="zbtns" id="zBtns"></div>
+    </div>
+  </div>
+</div>
+
+<div id="screenDlg" class="veil" hidden>
+  <div class="card small">
+    <button class="x" id="sClose">×</button>
+    <div class="shead">📺 我要上大屏</div>
+    <div class="ssub">免费霸屏 12 秒，全场都看得到。表白、找人、喊话，40 字以内。</div>
+    <textarea id="sText" maxlength="40" rows="3" placeholder="比如：穿红裙子那位，我在舞池左边等你"></textarea>
+    <label class="chk lite" id="sWithWrap"><input type="checkbox" id="sWith" checked> 让我的小人一起上屏</label>
+    <button id="sGo" class="neon hot big">霸屏！</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/rig.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/floor.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
