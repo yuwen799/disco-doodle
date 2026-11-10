@@ -41,7 +41,7 @@
     if (local) return localCall(method, url, body);
     const r = await fetch(DD.url(url.replace(/^\//, '')), { method, headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) { const e = new Error(j.error || '出错了，再试一次'); e.status = r.status; throw e; }
+    if (!r.ok) { const e = new Error((I18N.lang === 'zh' && j.error) || T('err')); e.status = r.status; throw e; }
     return j;
   }
   function toast(msg) {
@@ -51,12 +51,12 @@
   const mine = () => (me ? Floor.get(me.id) : null);
   function refreshHud() {
     const c = Floor.count();
-    $('stat').textContent = local ? `单机模式 · 舞池 ${c.total} 人` : `在线 ${online} · 舞池 ${c.total} 人`;
-    $('bDraw').textContent = mine() ? '✏️ 重画' : '✏️ 画自己';
+    $('stat').textContent = T(local ? 'statLocal' : 'stat', { n: c.total, o: online });
+    $('bDraw').textContent = T(mine() ? 'redraw' : 'draw');
     $('bMe').hidden = !mine();
   }
   function musicLabel() {
-    $('bMusic').textContent = Beat.isOn() ? '🔊 ' + Beat.track() : '🔇 开音乐';
+    $('bMusic').textContent = Beat.isOn() ? '🔊 ' + T('tr_' + Beat.track()) : T('musicOff');
     $('bNext').hidden = !Beat.isOn();
     $('bMusic').classList.toggle('blink', !Beat.isOn());
   }
@@ -78,7 +78,7 @@
       Floor.setMe(me.id); Floor.upsert(res.dancer);
       if (!Beat.isOn()) Beat.start();
       showFloor(); Floor.focusOn(me.id, 5000);
-      toast('你进场了！点别人可以放大看');
+      toast(T('entered'));
     } catch (e) { toast(e.message); }
     btn.disabled = false;
   }
@@ -90,40 +90,40 @@
     $('zBtns').appendChild(b); return b;
   }
   function metaText(d) {
-    const mv = (Rig.MOVES[d.move] || Rig.MOVES.bounce).name;
-    if (d.npc) return `气氛组 NPC · 舞步：${mv}`;
-    const when = new Date(d.ts).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    return `${when} 入场 · 舞步：${mv} · ❤ ${d.likes}`;
+    const mv = T('mv_' + (Rig.MOVES[d.move] ? d.move : 'bounce'));
+    if (d.npc) return T('npcMeta', { mv });
+    const when = new Date(d.ts).toLocaleString(I18N.lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return T('meta', { when, mv, likes: d.likes });
   }
   async function copyLink(d) {
     const link = location.origin + location.pathname + '#d=' + d.id;
-    try { await navigator.clipboard.writeText(link); toast('链接已复制，发给朋友来找人'); } catch (_) { toast(link); }
+    try { await navigator.clipboard.writeText(link); toast(T('copied')); } catch (_) { toast(link); }
   }
   function openZoom(d) {
     zoomD = d; zoomPaused = false;
-    $('zName').textContent = d.name; $('zMsg').textContent = d.msg || ''; $('zMeta').textContent = metaText(d);
+    $('zName').textContent = I18N.name(d.name); $('zMsg').textContent = d.msg || ''; $('zMeta').textContent = metaText(d);
     $('zBtns').textContent = '';
-    btn('⏸ 定住看细节', (b) => { zoomPaused = !zoomPaused; b.textContent = zoomPaused ? '▶ 继续跳' : '⏸ 定住看细节'; });
+    btn(T('freeze'), (b) => { zoomPaused = !zoomPaused; b.textContent = T(zoomPaused ? 'resume' : 'freeze'); });
     if (d.npc) { /* the hype crew has no socials */ }
     else if (me && d.id === me.id) {
-      btn('✏️ 重画', () => { closeZoom(); Editor.open(d); });
-      btn('📺 我要上大屏', () => { closeZoom(); openScreen(''); }, true);
-      if (!local) btn('🔗 复制我的链接', () => copyLink(d));
-      btn('🚪 退场', async () => {
-        if (!confirm('真的要退场吗？你的小人会从舞池消失。')) return;
+      btn(T('redraw'), () => { closeZoom(); Editor.open(d); });
+      btn(T('toScreen'), () => { closeZoom(); openScreen(''); }, true);
+      if (!local) btn(T('copyMine'), () => copyLink(d));
+      btn(T('leave'), async () => {
+        if (!confirm(T('leaveConfirm'))) return;
         try { await call('DELETE', '/api/dancers/' + d.id, { token: me.token }); } catch (e) { return toast(e.message); }
         Floor.remove(d.id); me = null; store.set('dd_me', null); Floor.setMe(null); closeZoom(); refreshHud();
       });
     } else {
-      btn(liked.has(d.id) ? `❤ 已打call ${d.likes}` : `❤ 打call ${d.likes}`, async (b) => {
+      btn(T(liked.has(d.id) ? 'liked' : 'like', { n: d.likes }), async (b) => {
         if (liked.has(d.id)) return;
         liked.add(d.id); store.set('dd_liked', [...liked].slice(-500));
         try { const r = await call('POST', `/api/dancers/${d.id}/like`); d.likes = r.likes; } catch (_) {}
-        b.textContent = `❤ 已打call ${d.likes}`; $('zMeta').textContent = metaText(d);
+        b.textContent = T('liked', { n: d.likes }); $('zMeta').textContent = metaText(d);
       }, true);
-      btn('💌 大屏喊话', () => { closeZoom(); openScreen('@' + d.name + ' '); });
-      btn('🔗 复制TA的链接', () => copyLink(d));
-      btn('🚩 举报', async (b) => { try { await call('POST', `/api/dancers/${d.id}/report`); } catch (_) {} b.disabled = true; toast('收到，谢谢'); });
+      btn(T('shout'), () => { closeZoom(); openScreen('@' + I18N.name(d.name) + ' '); });
+      btn(T('copyTheirs'), () => copyLink(d));
+      btn(T('report'), async (b) => { try { await call('POST', `/api/dancers/${d.id}/report`); } catch (_) {} b.disabled = true; toast(T('reported')); });
     }
     $('zoom').hidden = false;
   }
@@ -149,7 +149,7 @@
   function openScreen(prefill) {
     $('sText').value = prefill || '';
     $('sWithWrap').hidden = !mine();
-    if (local) $('sSub').textContent = '免费霸屏 12 秒。现在是单机模式，大屏只有你自己看得到。40 字以内。';
+    $('sSub').textContent = T(local ? 'sSubLocal' : 'sSub');
     $('screenDlg').hidden = false;
     $('sText').focus();
   }
@@ -160,12 +160,12 @@
   }
   $('sGo').onclick = async () => {
     const text = $('sText').value.trim();
-    if (!text) return toast('写点什么再上大屏');
+    if (!text) return toast(T('needText'));
     try {
       const withMe = mine() && $('sWith').checked;
       const r = await call('POST', '/api/screen', { text, dancerId: withMe ? me.id : null });
       addScreen(r.item, true);
-      $('screenDlg').hidden = true; toast('上大屏啦！抬头看 👆');
+      $('screenDlg').hidden = true; toast(T('onScreenToast'));
     } catch (e) { toast(e.message); }
   };
   $('sClose').onclick = () => { $('screenDlg').hidden = true; };
@@ -177,17 +177,17 @@
   // ---------- HUD ----------
   $('bMusic').onclick = () => { Beat.toggle(); musicLabel(); };
   $('bNext').onclick = () => Beat.next();
-  Beat.onTrack = (name) => { musicLabel(); if (Beat.isOn()) toast('♪ 现在播放：' + name); };
-  $('bMe').onclick = () => { if (!Floor.focusOn(me && me.id)) toast('你还没进场，先画一个'); };
+  Beat.onTrack = (i) => { musicLabel(); if (Beat.isOn()) toast(T('nowPlaying', { name: T('tr_' + i) })); };
+  $('bMe').onclick = () => { if (!Floor.focusOn(me && me.id)) toast(T('notIn')); };
   $('bDraw').onclick = () => Editor.open(mine());
   $('bScreen').onclick = () => openScreen('');
   $('bFind').onclick = () => { const b = $('findBox'); b.hidden = !b.hidden; if (!b.hidden) { $('findIn').value = ''; $('findRes').textContent = ''; $('findIn').focus(); } };
   $('findIn').oninput = () => {
     const box = $('findRes'), q = $('findIn').value, res = Floor.search(q);
     box.textContent = '';
-    if (q.trim() && !res.length) { const n = document.createElement('div'); n.className = 'none'; n.textContent = '舞池里没找到这个人'; box.appendChild(n); }
+    if (q.trim() && !res.length) { const n = document.createElement('div'); n.className = 'none'; n.textContent = T('notFound'); box.appendChild(n); }
     for (const d of res) {
-      const row = document.createElement('div'); row.textContent = d.name + (d.msg ? ' ：' + d.msg : '');
+      const row = document.createElement('div'); row.textContent = I18N.name(d.name) + (d.msg ? ' : ' + d.msg : '');
       row.onclick = () => { Floor.focusOn(d.id); $('findBox').hidden = true; };
       box.appendChild(row);
     }
@@ -200,7 +200,7 @@
     const m = /^#d=([a-f0-9]{10})$/.exec(location.hash);
     if (!m) return false;
     const d = Floor.get(m[1]);
-    if (!d) { toast('这个人已经离场了'); return false; }
+    if (!d) { toast(T('gone')); return false; }
     showFloor(); Floor.focusOn(d.id); openZoom(d);
     return true;
   }
@@ -216,7 +216,15 @@
       refreshHud();
     };
   }
+  for (const b of document.querySelectorAll('.langBtn')) b.onclick = () => I18N.toggle();
+  I18N.listeners.push(() => {
+    Editor.relabel(); refreshHud(); musicLabel();
+    if (!$('screenDlg').hidden) $('sSub').textContent = T(local ? 'sSubLocal' : 'sSub');
+    if (zoomD) openZoom(zoomD);
+  });
+
   async function boot() {
+    I18N.apply();
     Floor.init($('floor'));
     Editor.init({ onGo: enter, onWatch: showFloor });
     try {

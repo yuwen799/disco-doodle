@@ -237,6 +237,8 @@ window.Rig = (function () {
     return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
   const NPC_NAMES = ['阿珍', '阿强', '迪斯科王', '小芳', '霹雳虎', '莉莉', '大卫', '露西', '阿飞', '玛丽', '龙哥', '雯雯', 'Tony', '红姐', '小马', '安娜', '阿杰', '琳达', '老K', '蓉蓉', 'Jacky', '美玲', '阿Ben', '燕子', '喇叭裤小王', '卷毛', '曼丽', '阿辉'];
+  const NPC_NAMES_EN = ['Jenny', 'Johnny', 'Disco King', 'Fanny', 'Tiger', 'Lily', 'David', 'Lucy', 'Ace', 'Mary', 'Big Lou', 'Wendy', 'Tony', 'Ruby', 'Pony', 'Anna', 'Jay', 'Linda', 'Old K', 'Rosie', 'Jacky', 'Mei', 'Ben', 'Robin', 'Bell-bottom Bill', 'Curly', 'Molly', 'Ray'];
+  const NPC_MSGS_EN = ['Dancing till sunrise', 'Who stepped on my bell-bottoms?', 'DJ, one more!', 'Need a dance partner', 'Check out my hair', 'All night long', 'Fresh perm, do not touch', 'Meet me in the middle', "Don't stop the music", 'Go draw yourself too'];
   const NPC_MSGS = ['今晚不醉不归', '谁踩我喇叭裤了', 'DJ 再来一首！', '找舞伴，会迪斯科的来', '我的发型帅不帅', '跳到天亮', '新烫的头，别碰', '舞池中央见', '音乐不要停', '你也来画一个嘛'];
   function npc(i) {
     const r = rng(i * 7919 + 13), pick = (a) => a[Math.floor(r() * a.length)];
@@ -248,7 +250,12 @@ window.Rig = (function () {
       hairCol: pick(['#1b1b1b', '#4a2a12', '#ffd23f', '#ff5fa2', '#7b3ff2', '#d9d9d9']),
       shades: r() < 0.35, sleeves: r() < 0.3, pants: r() < 0.45, stripe: r() < 0.3 ? pick(neon) : null,
     });
-    return { id: 'npc' + i, npc: true, name: NPC_NAMES[i % NPC_NAMES.length], msg: pick(NPC_MSGS), move: pick(MOVE_IDS), likes: 0, ts: 0, canvas };
+    const mi = Math.floor(r() * NPC_MSGS.length), zh = () => I18N.lang === 'zh';
+    return {
+      id: 'npc' + i, npc: true, move: pick(MOVE_IDS), likes: 0, ts: 0, canvas,
+      get name() { return (zh() ? NPC_NAMES : NPC_NAMES_EN)[i % NPC_NAMES.length]; },
+      get msg() { return (zh() ? NPC_MSGS : NPC_MSGS_EN)[mi]; },
+    };
   }
 
   return { W, H, GROUND, MOVES, MOVE_IDS, REST, buildParts, partsFromCanvas, poseAt, draw, paint, npc, rng };
