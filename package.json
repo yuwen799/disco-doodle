@@ -1,0 +1,12 @@
+{
+  "name": "disco-doodle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "来蹦迪 DISCO DOODLE — 画个小人，丢进 90 年代舞池",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

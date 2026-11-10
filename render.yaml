@@ -1,0 +1,14 @@
+# One-click deploy: https://render.com/deploy?repo=https://github.com/yuwen799/disco-doodle
+services:
+  - type: web
+    name: disco-doodle
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/state
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: TRUST_PROXY
+        value: "1"
