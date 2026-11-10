@@ -10,13 +10,20 @@ node server.js        # 默认 http://localhost:3090 ，零依赖，Node 16+
 
 同一个 Wi-Fi 下的朋友打开 `http://<你的电脑IP>:3090` 就能一起蹦。
 
-## 部署上线
+## 部署上线（还没发布）
 
-这是个需要常驻 Node 进程的应用（要存小人、要实时推送），GitHub Pages 这类纯静态托管跑不了。仓库里带了 `render.yaml`，可以一键部署到 Render：
+两种形态：
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yuwen799/disco-doodle)
+- **联网版**（多人一起玩）：需要常驻的 `node server.js`，负责存小人和实时推送。仓库带了 `render.yaml`，可以部署到 Render 这类能跑 Node 的平台。免费档会休眠，磁盘不持久（重启后小人清空）。
+- **单机版**（纯静态，适合 GitHub Pages）：页面连不上后端时自动进入单机模式，照样能画、能跳、能上大屏，但数据只存在各自浏览器里，互相看不到。本地加 `?solo` 可以强制进入单机模式测试。
 
-免费档的两个限制：15 分钟没人访问会休眠（下次打开要等几十秒唤醒）；磁盘不持久，服务重启或重新部署后舞池里的小人会清空。想长期保留数据，需要挂持久磁盘（付费）并把 `DATA_DIR` 指过去。
+想让 GitHub Pages 上的页面也能多人玩：把后端地址填进 `public/js/config.js` 的 `api`（服务端已开 CORS）。
+
+发布到 Pages（把 `public/` 推成 `gh-pages` 分支）：
+
+```bash
+git subtree push --prefix public origin gh-pages
+```
 
 ## 玩法
 

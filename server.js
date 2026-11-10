@@ -207,6 +207,11 @@ function sendFile(res, file, cache) {
 }
 
 http.createServer((req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');   // lets a static front end (e.g. GitHub Pages) use this backend
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' });
+    return res.end();
+  }
   let url;
   try { url = new URL(req.url, 'http://x'); } catch { res.writeHead(400); return res.end(); }
   if (url.pathname.startsWith('/api/')) {
