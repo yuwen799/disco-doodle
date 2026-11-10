@@ -82,7 +82,7 @@ window.Beat = (function () {
     prev = { b: beatBase, t0, spb: spb() };
     beatBase += k / 4; t0 += k * step; k = 0;
     idx = ((i % TRACKS.length) + TRACKS.length) % TRACKS.length; skip = false;
-    if (api.onTrack) api.onTrack(TRACKS[idx].name);
+    if (api.onTrack) api.onTrack(idx);
   }
   function tick() {
     const off = ac.currentTime - nowS();
@@ -119,6 +119,6 @@ window.Beat = (function () {
   }
   return Object.assign(api, {
     beat, start, stop, toggle: () => (on ? (stop(), false) : start()), isOn: () => on,
-    next: () => { skip = true; }, track: () => TRACKS[idx].name, tracks: () => TRACKS.map((t) => t.name),
+    next: () => { skip = true; }, track: () => idx,
   });
 })();

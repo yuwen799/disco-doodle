@@ -7,13 +7,13 @@ window.Editor = (function () {
     '#000000', '#808080', '#800000', '#808000', '#008000', '#008080', '#000080', '#800080', '#804000', '#004040', '#0080ff', '#8000ff', '#f6d7b0', '#e9b98a', '#c68642', '#8d5524',
     '#ffffff', '#c0c0c0', '#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff8040', '#00ff80', '#80ffff', '#8080ff', '#ff0080', '#ffff80', '#ffb3d9', '#b54dff',
   ];
-  const TOOLS = [['pencil', '✏️', '铅笔'], ['spray', '💨', '喷枪'], ['fill', '🪣', '油漆桶'], ['eraser', '🧽', '橡皮'], ['pick', '💉', '吸管']];
+  const TOOLS = [['pencil', '✏️'], ['spray', '💨'], ['fill', '🪣'], ['eraser', '🧽'], ['pick', '💉']];
   const SIZES = [1, 2, 4, 8];
 
   let ink, ictx, base, pv, pctx, comp, cctx;
   let tool = 'pencil', size = 2, color = '#ff0080', move = 'bounce';
   let undo = [], parts = null, dirty = true, lastBuild = 0, running = false, sprayTimer = null;
-  let down = false, lx = 0, ly = 0, cbs = {};
+  let down = false, lx = 0, ly = 0, cbs = {}, editing = false;
 
   const spans = {};
   for (const s of SIZES) {
@@ -142,8 +142,8 @@ window.Editor = (function () {
     comp = document.createElement('canvas'); comp.width = W; comp.height = H; cctx = comp.getContext('2d');
     base.getContext('2d').drawImage(Rig.paint(), 0, 0);
 
-    for (const [t, icon, label] of TOOLS) {
-      const b = document.createElement('button'); b.textContent = icon; b.title = label; b.dataset.t = t;
+    for (const [t, icon] of TOOLS) {
+      const b = document.createElement('button'); b.textContent = icon; b.dataset.t = t;
       b.onclick = () => setTool(t); $('tools').appendChild(b);
     }
     for (const s of SIZES) {
@@ -157,10 +157,10 @@ window.Editor = (function () {
       $('palette').appendChild(b);
     }
     for (const m of Rig.MOVE_IDS) {
-      const b = document.createElement('button'); b.textContent = Rig.MOVES[m].name; b.dataset.m = m;
+      const b = document.createElement('button'); b.dataset.m = m;
       b.onclick = () => setMove(m); $('moves').appendChild(b);
     }
-    setTool('pencil'); setSize(2); setColor(color); setMove('bounce');
+    setTool('pencil'); setSize(2); setColor(color); setMove('bounce'); relabel();
 
     ink.addEventListener('pointerdown', onDown);
     ink.addEventListener('pointermove', onMove);
@@ -175,6 +175,12 @@ window.Editor = (function () {
     addEventListener('keydown', (e) => {
       if (running && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && e.target.tagName !== 'INPUT') { e.preventDefault(); doUndo(); }
     });
+  }
+
+  function relabel() {   // (re)apply every label that depends on the language
+    for (const b of $('tools').children) b.title = T('t_' + b.dataset.t);
+    for (const b of $('moves').children) b.textContent = T('mv_' + b.dataset.m);
+    $('bGo').textContent = T(editing ? 'goEdit' : 'go');
   }
 
   function data() {
@@ -194,11 +200,11 @@ window.Editor = (function () {
       if (DD.api) im.crossOrigin = 'anonymous';
       im.src = DD.img(existing);
     }
-    $('bGo').textContent = existing ? '改好了，回舞池 ▶' : '进入舞池 ▶';
+    editing = !!existing; relabel();
     dirty = true;
     if (!running) { running = true; loop(); }
   }
   function close() { $('editor').hidden = true; running = false; onUp(); }
 
-  return { init, open, close };
+  return { init, open, close, relabel };
 })();

@@ -107,10 +107,19 @@ window.Floor = (function () {
   }
 
   function wrap(text, maxW, maxLines) {
-    const lines = []; let cur = '';
+    // break between CJK characters or between Latin words; never start a line with punctuation
+    const toks = []; let word = '';
     for (const chr of text) {
-      if (ctx.measureText(cur + chr).width > maxW && cur && !'，。！？、；：,.!?)）】》”’~…'.includes(chr)) { lines.push(cur); cur = chr; } else cur += chr;
+      if (chr.charCodeAt(0) > 0x2e7f) { if (word) { toks.push(word); word = ''; } toks.push(chr); }
+      else if (chr === ' ') { toks.push(word + ' '); word = ''; }
+      else word += chr;
     }
+    if (word) toks.push(word);
+    const lines = []; let cur = '';
+    for (const tk of toks) {
+      if (ctx.measureText((cur + tk).trimEnd()).width > maxW && cur && !'，。！？、；：,.!?)）】》”’~…'.includes(tk[0])) { lines.push(cur.trimEnd()); cur = tk; } else cur += tk;
+    }
+    cur = cur.trimEnd();
     if (cur) lines.push(cur);
     return lines.length <= maxLines ? lines : null;
   }
@@ -154,7 +163,7 @@ window.Floor = (function () {
       ctx.textAlign = 'left';
       ctx.font = `900 ${Math.round(sh * 0.1)}px "PingFang SC", sans-serif`;
       ctx.fillStyle = '#00e5ff';
-      ctx.fillText(`★ ${item.name} 霸屏中 ★`, tx, y + sh * 0.13, tw);
+      ctx.fillText(T('scrHolding', { name: I18N.name(item.name) }), tx, y + sh * 0.13, tw);
       let size = sh * 0.26, lines = null;
       for (; size > sh * 0.09; size *= 0.88) {
         ctx.font = `900 ${Math.round(size)}px "PingFang SC", "Microsoft YaHei", sans-serif`;
@@ -182,9 +191,9 @@ window.Floor = (function () {
       });
       ctx.textAlign = 'center';
       ctx.font = `900 ${Math.round(sh * 0.14)}px "PingFang SC", sans-serif`;
-      if (beat % 2 < 1.4) { ctx.fillStyle = '#ffe600'; ctx.fillText('👆 点大屏 · 免费霸屏', x + sw / 2, y + sh * 0.68); }
+      if (beat % 2 < 1.4) { ctx.fillStyle = '#ffe600'; ctx.fillText(T('scrCta'), x + sw / 2, y + sh * 0.68, sw * 0.94); }
       ctx.font = `700 ${Math.round(sh * 0.085)}px "PingFang SC", sans-serif`;
-      ctx.fillStyle = '#7dff3a'; ctx.fillText('表白 · 找人 · 喊麦　今晚谁是舞池之王', x + sw / 2, y + sh * 0.88, sw * 0.9);
+      ctx.fillStyle = '#7dff3a'; ctx.fillText(T('scrSub'), x + sw / 2, y + sh * 0.88, sw * 0.9);
     }
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     for (let yy = y; yy < y + sh; yy += 3) ctx.fillRect(x, yy, sw, 1);
@@ -259,8 +268,8 @@ window.Floor = (function () {
       if (d.id === meId) {
         const bob = Math.abs(Math.sin(beat * Math.PI)) * 6;
         ctx.fillStyle = '#ffe600'; ctx.beginPath(); ctx.moveTo(x - 8, top - 12 - bob); ctx.lineTo(x + 8, top - 12 - bob); ctx.lineTo(x, top - bob); ctx.fill();
-        tag('我', x, top - 24 - bob, '#ffe600');
-      } else if (isFocus || hover === d) tag(d.name, x, top - 6, isFocus ? '#ffe600' : '#00e5ff');
+        tag(T('meTag'), x, top - 24 - bob, '#ffe600');
+      } else if (isFocus || hover === d) tag(I18N.name(d.name), x, top - 6, isFocus ? '#ffe600' : '#00e5ff');
     }
   }
 
@@ -355,7 +364,7 @@ window.Floor = (function () {
     setMe: (id) => { meId = id; },
     setScreen: (list) => { items = list.slice(-8); },
     pushScreen: (item) => { items.push(item); items = items.slice(-8); forced = item; forcedUntil = Date.now() + SLOT; },
-    search: (q) => { q = q.trim().toLowerCase(); return q ? order.filter((d) => d.name.toLowerCase().includes(q)).slice(0, 12) : []; },
+    search: (q) => { q = q.trim().toLowerCase(); return q ? order.filter((d) => I18N.name(d.name).toLowerCase().includes(q)).slice(0, 12) : []; },
     count: () => ({ real: real.size, total: order.length }),
   });
 })();
